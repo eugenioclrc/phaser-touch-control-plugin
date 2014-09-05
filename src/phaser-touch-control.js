@@ -45,7 +45,7 @@
 		this.imageGroup.push(this.game.add.sprite(0, 0, 'touch_segment'));
 		this.imageGroup.push(this.game.add.sprite(0, 0, 'touch_segment'));
 		this.imageGroup.push(this.game.add.sprite(0, 0, 'touch'));
-		
+
 		this.imageGroup.forEach(function (e) {
 			e.anchor.set(0.5);
 			e.visible=false;
@@ -62,7 +62,7 @@
 		maxDistanceInPixels: 200,
 		singleDirection: false
 	};
-	
+
 
 	Phaser.Plugin.TouchControl.prototype.cursors = {
 		up: false, down: false, left: false, right: false
@@ -72,9 +72,13 @@
 		x:0, y:0
 	};
 
-	Phaser.Plugin.TouchControl.prototype.inputEnable = function() {
-		this.input.onDown.add(createCompass, this);
-		this.input.onUp.add(removeCompass, this);
+	Phaser.Plugin.TouchControl.prototype.inputEnable = function(x, y, w, h) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.input.onDown.add(createCompass, this);
+        this.input.onUp.add(removeCompass, this);
 	};
 
 	Phaser.Plugin.TouchControl.prototype.inputDisable = function() {
@@ -84,19 +88,24 @@
 
 	var initialPoint;
 	var createCompass = function(){
+      if((this.input.activePointer.position.x > this.x && this.input.activePointer.position.x < this.x + this.w &&
+        this.input.activePointer.position.y > this.y && this.input.activePointer.position.y < this.y + this.h) ||
+         (this.x == null || this.y == null || this.w == null || this.h == null)
+        ) {
 		this.imageGroup.forEach(function (e) {
 			e.visible=true;
 			e.bringToTop();
-			
+
 			e.cameraOffset.x=this.input.worldX;
 			e.cameraOffset.y=this.input.worldY;
-			
+
 		}, this);
-		
+
 		this.preUpdate=setDirection.bind(this);
 
 		initialPoint=this.input.activePointer.position.clone();
-		
+      }
+
 	};
 	var removeCompass = function () {
 		this.imageGroup.forEach(function(e){
@@ -107,13 +116,13 @@
 		this.cursors.down = false;
 		this.cursors.left = false;
 		this.cursors.right = false;
-		
+
 		this.speed.x = 0;
 		this.speed.y = 0;
-		
+
 		this.preUpdate=empty;
 	};
-	
+
 	var empty = function(){
 	};
 
@@ -134,8 +143,8 @@
 			}
 		}
 		var angle = initialPoint.angle(this.input.activePointer.position);
-		
-		
+
+
 		if(d>maxDistanceInPixels){
 			deltaX = Math.cos(angle) * maxDistanceInPixels;
 			deltaY = Math.sin(angle) * maxDistanceInPixels;
@@ -144,19 +153,19 @@
 		this.speed.x = parseInt((deltaX/maxDistanceInPixels) * 100 * -1, 10);
 		this.speed.y = parseInt((deltaY/maxDistanceInPixels)*100 * -1, 10);
 
-		
+
 		this.cursors.up = (deltaY < 0);
 		this.cursors.down = (deltaY > 0);
 		this.cursors.left = (deltaX < 0);
 		this.cursors.right = (deltaX > 0);
-		
+
 		this.imageGroup.forEach(function(e,i){
 			e.cameraOffset.x = initialPoint.x+(deltaX)*i/3;
 			e.cameraOffset.y = initialPoint.y+(deltaY)*i/3;
 		}, this);
-		
+
 	};
 	Phaser.Plugin.TouchControl.prototype.preUpdate = empty;
 
-	
+
 }(window, Phaser));
